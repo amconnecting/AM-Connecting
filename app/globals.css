@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #082f4f;
+  background: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: #ffffff;
+  color: #082f4f;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-[min(100%-2.5rem,1180px)];
+  }
+
+  .eyebrow {
+    @apply text-sm font-extrabold uppercase tracking-normal text-teal;
+  }
+
+  .section-title {
+    @apply mt-4 text-4xl font-bold leading-tight tracking-normal text-navy md:text-5xl;
+  }
+
+  .button {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full px-5 py-3 font-extrabold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0;
+  }
+
+  .button-primary {
+    @apply button bg-teal text-white shadow-lift hover:bg-navy;
+  }
+
+  .button-dark {
+    @apply button bg-navy text-white hover:bg-teal;
+  }
+
+  .button-secondary {
+    @apply button border border-line bg-white text-navy hover:border-teal hover:text-teal;
+  }
+
+  .card {
+    @apply rounded-lg border border-line bg-white shadow-soft;
+  }
+
+  .field {
+    @apply grid gap-2 text-sm font-bold text-navy/70;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-line bg-white px-4 py-3 text-navy outline-none transition focus:border-teal;
+  }
+}
