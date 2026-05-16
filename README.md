@@ -32,6 +32,15 @@ NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ADMIN_EMAILS=admin@amconnecting.com
+RESEND_API_KEY=...
+CONTACT_TO_EMAIL=hello@am-connecting.com
+CONTACT_FROM_EMAIL=AM-Connecting <noreply@am-connecting.com>
 ```
 
 Do not commit `.env.local`.
+
+## Contact form email
+
+The contact form posts to `/api/contact`. That API route sends email through Resend.
+
+Set up Resend, verify the sending domain, then add `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, and `CONTACT_FROM_EMAIL` in Vercel.

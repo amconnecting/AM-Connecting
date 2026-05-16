@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import ContactForm from "@/components/ContactForm";
 import Header from "@/components/Header";
 
 export default function LandingPage() {
@@ -139,13 +140,7 @@ function Contact() {
             <p>For HR, People & Culture and employee engagement teams.</p>
           </div>
         </div>
-        <form className="card grid gap-4 bg-cloud p-6">
-          <label className="field">Name<input className="input" type="text" /></label>
-          <label className="field">Company<input className="input" type="text" /></label>
-          <label className="field">Email<input className="input" type="email" /></label>
-          <label className="field">Message<textarea className="input min-h-32 resize-y" /></label>
-          <button className="button-primary" type="button">Send message</button>
-        </form>
+        <ContactForm />
       </div>
     </section>
   );
