@@ -9,7 +9,8 @@ const initialForm = {
   name: "",
   seniority: "",
   officeLocation: "",
-  email: ""
+  email: "",
+  privacyAccepted: false
 };
 
 export default function RegistrationForm() {
@@ -18,7 +19,8 @@ export default function RegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    const { name, type, checked, value } = event.target;
+    setForm((current) => ({ ...current, [name]: type === "checkbox" ? checked : value }));
   }
 
   async function submitRegistration(event) {
@@ -60,9 +62,24 @@ export default function RegistrationForm() {
       <Field label="Seniority" name="seniority" value={form.seniority} onChange={updateField} />
       <Field label="Office / Location" name="officeLocation" value={form.officeLocation} onChange={updateField} />
       <Field className="md:col-span-2" label="Email" name="email" type="email" value={form.email} onChange={updateField} required />
-      <p className="border-l-4 border-teal pl-4 text-sm font-semibold leading-6 text-navy/65 md:col-span-2">
-        Your information is only used to create balanced cross-department teams and communicate about the challenge.
-      </p>
+      <div className="rounded-lg border border-teal/20 bg-teal/5 p-4 md:col-span-2">
+        <p className="text-sm font-semibold leading-6 text-navy/70">
+          Your information is only used to create balanced cross-department teams and to communicate practical follow-up about the AM-Connecting challenge.
+        </p>
+        <label className="mt-4 flex gap-3 text-sm font-bold leading-6 text-navy">
+          <input
+            className="mt-1 h-4 w-4 accent-teal"
+            name="privacyAccepted"
+            type="checkbox"
+            checked={form.privacyAccepted}
+            onChange={updateField}
+            required
+          />
+          <span>
+            I have read and accept the <a className="text-teal underline" href="/privacy" target="_blank" rel="noreferrer">privacy policy</a>.
+          </span>
+        </label>
+      </div>
       {status.text ? (
         <p className={`rounded-lg px-4 py-3 text-sm font-bold md:col-span-2 ${status.type === "success" ? "bg-teal/10 text-teal" : "bg-red-50 text-red-800"}`}>
           {status.text}

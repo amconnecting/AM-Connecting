@@ -71,6 +71,24 @@ export default function AdminDashboard() {
     setParticipants(result.participants || []);
   }
 
+  async function deleteRegistration(participant) {
+    const confirmed = window.confirm(`Delete registration for ${participant.name}? This cannot be undone.`);
+    if (!confirmed) return;
+
+    const response = await fetch(`/api/register/${participant.id}`, { method: "DELETE" });
+    const result = await response.json();
+
+    if (!response.ok) {
+      window.alert(result.error || "Could not delete this registration.");
+      return;
+    }
+
+    setParticipants((current) => current.filter((item) => item.id !== participant.id));
+    setGroups([]);
+    setDrafts({});
+    setCopyStatus({});
+  }
+
   async function generateAdminGroups() {
     const response = await fetch("/api/groups", {
       method: "POST",
@@ -160,13 +178,13 @@ export default function AdminDashboard() {
             <Select label="Seniority" name="seniority" value={filters.seniority} options={options.seniority} onChange={updateFilter} />
             <button className="button-secondary self-end" type="button" onClick={() => setFilters({ company: "", department: "", seniority: "" })}>Clear filters</button>
           </div>
-          <ParticipantsTable participants={filteredParticipants} />
+          <ParticipantsTable participants={filteredParticipants} onDelete={deleteRegistration} />
         </section>
 
         <section className="card mt-5 p-5">
           <h2 className="text-2xl font-bold text-navy">Generated groups</h2>
           <p className="mt-1 text-navy/65">Groups are generated from the currently filtered participant list.</p>
-          {!groups.length ? <p className="py-8 text-center text-navy/55">Click “Generate Groups” to create teams.</p> : null}
+          {!groups.length ? <p className="py-8 text-center text-navy/55">Click "Generate Groups" to create teams.</p> : null}
           <div className="mt-5 grid gap-4 lg:grid-cols-2">
             {groups.map((group, index) => (
               <GroupCard
@@ -207,13 +225,13 @@ function Select({ label, name, value, options, onChange }) {
   );
 }
 
-function ParticipantsTable({ participants }) {
+function ParticipantsTable({ participants, onDelete }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[920px] border-collapse">
+      <table className="w-full min-w-[1040px] border-collapse">
         <thead>
           <tr className="bg-slate-50 text-left text-xs uppercase text-navy/60">
-            {["Name", "Email", "Company", "Department", "Function", "Seniority", "Office / Location"].map((heading) => (
+            {["Name", "Email", "Company", "Department", "Function", "Seniority", "Office / Location", "Actions"].map((heading) => (
               <th key={heading} className="border-b border-line px-4 py-3">{heading}</th>
             ))}
           </tr>
@@ -228,6 +246,11 @@ function ParticipantsTable({ participants }) {
               <td className="border-b border-line px-4 py-3 text-navy/75">{participant.function}</td>
               <td className="border-b border-line px-4 py-3 text-navy/75">{participant.seniority}</td>
               <td className="border-b border-line px-4 py-3 text-navy/75">{participant.officeLocation}</td>
+              <td className="border-b border-line px-4 py-3">
+                <button className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-extrabold text-red-800 hover:bg-red-100" type="button" onClick={() => onDelete(participant)}>
+                  Delete
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -245,7 +268,7 @@ function GroupCard({ group, index, draft, copyStatus, onPrepare, onCopy }) {
         {group.map((participant) => (
           <div key={participant.id || participant.email} className="border-t border-line pt-3">
             <strong className="text-navy">{participant.name}</strong>
-            <p className="text-sm leading-6 text-navy/65">{participant.department} · {participant.function} · {participant.seniority}</p>
+            <p className="text-sm leading-6 text-navy/65">{participant.department} - {participant.function} - {participant.seniority}</p>
             <p className="text-sm text-navy/65">{participant.email}</p>
           </div>
         ))}
