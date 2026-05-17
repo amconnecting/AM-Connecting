@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { createEmailDraft } from "@/lib/emailDrafts";
+import { normalizeDisplayText, normalizeParticipantRecord } from "@/lib/participantNormalization";
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,7 +20,7 @@ export default function AdminDashboard() {
         && (!filters.department || participant.department === filters.department)
         && (!filters.seniority || participant.seniority === filters.seniority);
     });
-  }, [participants, filters]);
+    }, [participants, filters]);
 
   const options = useMemo(() => ({
     companies: uniqueValues(participants, "company"),
@@ -68,7 +69,7 @@ export default function AdminDashboard() {
       return;
     }
 
-    setParticipants(result.participants || []);
+    setParticipants((result.participants || []).map(normalizeParticipantRecord));
   }
 
   async function deleteRegistration(participant) {
@@ -101,8 +102,8 @@ export default function AdminDashboard() {
     setCopyStatus({});
   }
 
-  function updateFilter(event) {
-    setFilters((current) => ({ ...current, [event.target.name]: event.target.value }));
+function updateFilter(event) {
+    setFilters((current) => ({ ...current, [event.target.name]: normalizeDisplayText(event.target.value) }));
     setGroups([]);
     setDrafts({});
   }
@@ -284,7 +285,7 @@ function GroupCard({ group, index, draft, copyStatus, onPrepare, onCopy }) {
 }
 
 function uniqueValues(items, key) {
-  return [...new Set(items.map((item) => item[key]).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  return [...new Set(items.map((item) => normalizeDisplayText(item[key])).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 }
 
 function exportParticipants(participants) {

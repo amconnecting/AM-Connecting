@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminAuth";
 import { generateGroups } from "@/lib/groups";
 import { getParticipants } from "@/lib/participants";
+import { normalizeDisplayText } from "@/lib/participantNormalization";
 
 export const runtime = "nodejs";
 
@@ -36,9 +37,9 @@ export async function POST(request) {
 }
 
 function filterParticipants(participants, searchParams) {
-  const company = searchParams.get("company") || "";
-  const department = searchParams.get("department") || "";
-  const seniority = searchParams.get("seniority") || "";
+  const company = normalizeDisplayText(searchParams.get("company"));
+  const department = normalizeDisplayText(searchParams.get("department"));
+  const seniority = normalizeDisplayText(searchParams.get("seniority"));
 
   return participants.filter((participant) => {
     return (!company || participant.company === company)
