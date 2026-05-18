@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Header from "@/components/Header";
 import { generateGroups } from "@/lib/groups";
+import { getGroupOverviewByIdentifier } from "@/lib/groupRecords";
 import { getParticipants } from "@/lib/participants";
 import { getDecisionSnapshotByGroupId } from "@/lib/snapshots";
 
@@ -14,12 +15,13 @@ export const runtime = "nodejs";
 
 export default async function FollowUpPage({ params }) {
   const { groupId } = await params;
-  const snapshot = await getDecisionSnapshotByGroupId(groupId);
+  const savedGroup = await getGroupOverviewByIdentifier(groupId);
+  const snapshot = savedGroup?.snapshot || await getDecisionSnapshotByGroupId(groupId);
   const participants = await getParticipants();
   const groups = generateGroups(participants, 5);
   const groupIndex = getGroupIndex(groupId);
-  const group = groups[groupIndex] || [];
-  const groupName = snapshot?.groupName || getGroupName(groupIndex);
+  const group = savedGroup?.participants?.length ? savedGroup.participants : groups[groupIndex] || [];
+  const groupName = savedGroup?.groupName || snapshot?.groupName || getGroupName(groupIndex);
 
   return (
     <>

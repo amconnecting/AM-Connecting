@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const initialForm = {
   company: "",
@@ -88,6 +89,9 @@ export default function RegistrationForm() {
       <button className="button-primary md:col-span-2" type="submit" disabled={isSubmitting}>
         {isSubmitting ? "Saving registration..." : "Start inscription"}
       </button>
+      <p className="text-center text-sm font-semibold text-navy/60 md:col-span-2">
+        Already registered? <Link className="text-teal underline" href="/my-group">Find your group number here</Link>.
+      </p>
     </form>
   );
 }

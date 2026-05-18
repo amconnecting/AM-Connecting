@@ -5,6 +5,7 @@ const navItems = [
   ["About Us", "/#about"],
   ["Events", "/#events"],
   ["Contact", "/#contact"],
+  ["Find My Group", "/my-group"],
   ["Profile / Inscription", "/registration"]
 ];
 
