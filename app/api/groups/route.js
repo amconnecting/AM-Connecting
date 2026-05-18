@@ -34,7 +34,7 @@ export async function POST(request) {
 
     const input = await request.json().catch(() => ({}));
     const groups = generateGroups(input.participants || [], Number(input.groupSize || 5));
-    const savedGroups = await saveGeneratedGroupRecords(groups);
+    const savedGroups = await saveGeneratedGroupRecords(groups, input.simulation || {});
 
     return NextResponse.json({ ok: true, groups, savedGroups });
   } catch (error) {

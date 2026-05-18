@@ -13,6 +13,17 @@ export default function AdminDashboard() {
   const [groups, setGroups] = useState([]);
   const [snapshots, setSnapshots] = useState([]);
   const [adminGroups, setAdminGroups] = useState([]);
+  const [simulations, setSimulations] = useState([]);
+  const [simulation, setSimulation] = useState({
+    title: "AM-Connecting Simulation",
+    contextText: "NovaBank notices that older customers increasingly struggle with digital onboarding. Support waiting times continue to rise, and more customer cases move between teams before customers get clarity.",
+    followUpQuestions: [
+      "Which previous priority still makes sense?",
+      "Which assumption should be reconsidered?",
+      "Which trade-off has become more difficult?",
+      "What should your group adapt?"
+    ].join("\n")
+  });
   const [selectedSnapshotGroup, setSelectedSnapshotGroup] = useState(null);
   const [drafts, setDrafts] = useState({});
   const [copyStatus, setCopyStatus] = useState({});
@@ -64,6 +75,7 @@ export default function AdminDashboard() {
     setGroups([]);
     setSnapshots([]);
     setAdminGroups([]);
+    setSimulations([]);
     setSelectedSnapshotGroup(null);
   }
 
@@ -102,6 +114,41 @@ export default function AdminDashboard() {
     }
 
     setAdminGroups(result.groups || []);
+    setSimulations(result.simulations || []);
+  }
+
+  async function updateSavedGroupSimulation(groupId, simulationId) {
+    const response = await fetch(`/api/admin/groups/${groupId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ simulationId })
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      window.alert(result.error || "Could not update the group simulation.");
+      return;
+    }
+
+    await loadAdminOverview();
+  }
+
+  async function runManualCleanup() {
+    const confirmed = window.confirm("Delete all event data older than 60 days? This cannot be undone.");
+    if (!confirmed) return;
+
+    const response = await fetch("/api/admin/cleanup", { method: "POST" });
+    const result = await response.json();
+
+    if (!response.ok) {
+      window.alert(result.error || "Cleanup could not be completed.");
+      return;
+    }
+
+    window.alert(`Cleanup completed. Deleted ${Object.values(result.deleted || {}).reduce((total, count) => total + count, 0)} records.`);
+    await loadParticipants();
+    await loadSnapshots();
+    await loadAdminOverview();
   }
 
   async function deleteRegistration(participant) {
@@ -127,7 +174,15 @@ export default function AdminDashboard() {
     const response = await fetch("/api/groups", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ participants: filteredParticipants, groupSize: 5 })
+      body: JSON.stringify({
+        participants: filteredParticipants,
+        groupSize: 5,
+        simulation: {
+          title: simulation.title,
+          contextText: simulation.contextText,
+          followUpQuestions: simulation.followUpQuestions
+        }
+      })
     });
     const result = await response.json();
     setGroups(result.groups || []);
@@ -192,6 +247,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap gap-3">
             <button className="button-secondary" type="button" onClick={() => exportParticipants(filteredParticipants)}>Export participants as CSV</button>
             <button className="button-primary" type="button" onClick={() => exportGroups(groups)} disabled={!groups.length}>Export groups as CSV</button>
+            <button className="button-secondary" type="button" onClick={runManualCleanup}>Delete data older than 60 days</button>
             <button className="button-secondary" type="button" onClick={logoutAdmin}>Sign out</button>
           </div>
         </header>
@@ -217,6 +273,7 @@ export default function AdminDashboard() {
             <Select label="Seniority" name="seniority" value={filters.seniority} options={options.seniority} onChange={updateFilter} />
             <button className="button-secondary self-end" type="button" onClick={() => setFilters({ company: "", department: "", seniority: "" })}>Clear filters</button>
           </div>
+          <SimulationSetup simulation={simulation} onChange={setSimulation} />
           <ParticipantsTable participants={filteredParticipants} onDelete={deleteRegistration} />
         </section>
 
@@ -267,7 +324,7 @@ export default function AdminDashboard() {
             </div>
             <button className="button-secondary" type="button" onClick={loadAdminOverview}>Refresh database data</button>
           </div>
-          <DatabaseOverview groups={adminGroups} />
+          <DatabaseOverview groups={adminGroups} simulations={simulations} onSimulationChange={updateSavedGroupSimulation} />
         </section>
       </div>
     </main>
@@ -292,6 +349,34 @@ function Select({ label, name, value, options, onChange }) {
         {options.map((option) => <option key={option} value={option}>{option}</option>)}
       </select>
     </label>
+  );
+}
+
+function SimulationSetup({ simulation, onChange }) {
+  function updateField(event) {
+    const { name, value } = event.target;
+    onChange((current) => ({ ...current, [name]: value }));
+  }
+
+  return (
+    <div className="border-t border-line p-5">
+      <h3 className="text-xl font-bold text-navy">Simulation setup</h3>
+      <p className="mt-1 text-navy/65">These details are saved with the groups you generate and shown on their follow-up pages.</p>
+      <div className="mt-4 grid gap-4">
+        <label className="field">
+          Simulation title
+          <input className="input bg-cloud focus:bg-white" name="title" value={simulation.title} onChange={updateField} />
+        </label>
+        <label className="field">
+          Follow-up context
+          <textarea className="input min-h-28 resize-y bg-cloud focus:bg-white" name="contextText" value={simulation.contextText} onChange={updateField} />
+        </label>
+        <label className="field">
+          Follow-up questions
+          <textarea className="input min-h-28 resize-y bg-cloud focus:bg-white" name="followUpQuestions" value={simulation.followUpQuestions} onChange={updateField} />
+        </label>
+      </div>
+    </div>
   );
 }
 
@@ -508,7 +593,7 @@ function getGroupName(index, snapshot) {
   return snapshot?.groupName || `Group ${index + 1}`;
 }
 
-function DatabaseOverview({ groups }) {
+function DatabaseOverview({ groups, simulations, onSimulationChange }) {
   if (!groups.length) {
     return <p className="py-8 text-center text-navy/55">No saved database groups found yet. Click Generate Groups to create saved group records.</p>;
   }
@@ -521,7 +606,17 @@ function DatabaseOverview({ groups }) {
             <div>
               <p className="eyebrow">{group.company}</p>
               <h3 className="mt-2 text-2xl font-bold text-navy">{group.groupName}</h3>
+              <p className="mt-1 font-bold text-teal">{group.simulation?.title || "No simulation linked"}</p>
               <p className="mt-1 text-sm font-semibold text-navy/55">Group ID: {group.id}</p>
+              <label className="field mt-4 max-w-md">
+                Link this group to simulation
+                <select className="input bg-cloud focus:bg-white" value={group.simulationId || ""} onChange={(event) => onSimulationChange(group.id, event.target.value)}>
+                  <option value="">No simulation linked</option>
+                  {simulations.map((simulation) => (
+                    <option key={simulation.id} value={simulation.id}>{simulation.title}</option>
+                  ))}
+                </select>
+              </label>
             </div>
             <div className="flex flex-wrap gap-2">
               <StatusBadge status={group.snapshot ? "Snapshot submitted" : "Snapshot not submitted"} />

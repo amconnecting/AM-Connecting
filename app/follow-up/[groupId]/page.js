@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import { generateGroups } from "@/lib/groups";
 import { getGroupOverviewByIdentifier } from "@/lib/groupRecords";
 import { getParticipants } from "@/lib/participants";
+import { defaultFollowUpContext } from "@/lib/simulations";
 import { getDecisionSnapshotByGroupId } from "@/lib/snapshots";
 
 export const metadata = {
@@ -22,6 +23,7 @@ export default async function FollowUpPage({ params }) {
   const groupIndex = getGroupIndex(groupId);
   const group = savedGroup?.participants?.length ? savedGroup.participants : groups[groupIndex] || [];
   const groupName = savedGroup?.groupName || snapshot?.groupName || getGroupName(groupIndex);
+  const simulation = savedGroup?.simulation || defaultFollowUpContext;
 
   return (
     <>
@@ -58,8 +60,8 @@ export default async function FollowUpPage({ params }) {
 
           <div className="grid gap-6">
             <SnapshotCard snapshot={snapshot} />
-            <NewContextCard />
-            <DiscussionCard />
+            <NewContextCard simulation={simulation} />
+            <DiscussionCard questions={simulation.followUpQuestions || defaultFollowUpContext.followUpQuestions} />
             <Link className="button-primary w-full sm:w-fit" href={`/submission/${groupId}`}>
               Continue to Final Submission
             </Link>
@@ -92,25 +94,19 @@ function SnapshotCard({ snapshot }) {
   );
 }
 
-function NewContextCard() {
+function NewContextCard({ simulation }) {
   return (
     <section className="rounded-lg border border-teal/20 bg-teal/5 p-5 sm:p-6">
       <p className="eyebrow">New context</p>
+      <h2 className="mt-3 text-2xl font-bold text-navy">{simulation.title}</h2>
       <p className="mt-4 text-lg font-semibold leading-8 text-navy/75">
-        NovaBank notices that older customers increasingly struggle with digital onboarding. Support waiting times continue to rise, and more customer cases move between teams before customers get clarity.
+        {simulation.contextText}
       </p>
     </section>
   );
 }
 
-function DiscussionCard() {
-  const questions = [
-    "Which previous priority still makes sense?",
-    "Which assumption should be reconsidered?",
-    "Which trade-off has become more difficult?",
-    "What should your group adapt?"
-  ];
-
+function DiscussionCard({ questions }) {
   return (
     <section className="card p-5 sm:p-6">
       <p className="eyebrow">Discuss as a group</p>

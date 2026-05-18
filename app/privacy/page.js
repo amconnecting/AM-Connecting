@@ -28,7 +28,7 @@ export default function PrivacyPage() {
             We do not sell participant data. We do not use registration data for unrelated marketing or external purposes.
           </PolicyBlock>
           <PolicyBlock title="Data retention">
-            Data is kept only as long as needed for the organization and follow-up of the simulation. Admin users can remove registrations from the admin panel.
+            Data is kept only as long as needed for the organization and follow-up of the simulation. Unless a shorter period is requested, participant data is deleted or anonymized within 60 days after the event. Admin users can also remove registrations from the admin panel earlier.
           </PolicyBlock>
           <PolicyBlock title="Your rights">
             You can request access, correction or deletion of your data by contacting hello@am-connecting.com.
