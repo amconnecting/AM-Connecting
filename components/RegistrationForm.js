@@ -56,7 +56,7 @@ export default function RegistrationForm() {
   return (
     <form onSubmit={submitRegistration} className="card grid gap-4 p-6 md:grid-cols-2">
       <Field label="Company / Bank" name="company" value={form.company} onChange={updateField} required />
-      <Field label="Department" name="department" value={form.department} onChange={updateField} required />
+      <Field label="Team / Area" name="department" value={form.department} onChange={updateField} required />
       <Field label="Function" name="function" value={form.function} onChange={updateField} />
       <Field label="Name" name="name" value={form.name} onChange={updateField} required />
       <Field label="Seniority" name="seniority" value={form.seniority} onChange={updateField} />
@@ -64,7 +64,7 @@ export default function RegistrationForm() {
       <Field className="md:col-span-2" label="Email" name="email" type="email" value={form.email} onChange={updateField} required />
       <div className="rounded-lg border border-teal/20 bg-teal/5 p-4 md:col-span-2">
         <p className="text-sm font-semibold leading-6 text-navy/70">
-          Your information is only used to create balanced cross-department teams and to communicate practical follow-up about the AM-Connecting challenge.
+          Your information is only used to create balanced simulation groups and to communicate practical follow-up about the AM-Connecting experience.
         </p>
         <label className="mt-4 flex gap-3 text-sm font-bold leading-6 text-navy">
           <input

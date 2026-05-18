@@ -14,21 +14,21 @@ export default function PrivacyPage() {
         </Link>
         <h1 className="mt-6 text-4xl font-bold">Privacy Policy</h1>
         <p className="mt-5 leading-7 text-navy/70">
-          AM-Connecting only collects the information needed to organize cross-department collaboration challenges.
+          AM-Connecting only collects the information needed to organize balanced collaboration simulations.
         </p>
 
         <div className="mt-8 grid gap-6">
           <PolicyBlock title="Data we collect">
-            Company or bank, department, function, name, seniority, office or location, email address and the date of registration.
+            Company or bank, team or area, function, name, seniority, office or location, email address and the date of registration.
           </PolicyBlock>
           <PolicyBlock title="Why we use this data">
-            We use this data to create balanced cross-department groups, communicate practical information about the challenge and follow up with participants when needed.
+            We use this data to create balanced simulation groups, communicate practical information about the experience and follow up with participants when needed.
           </PolicyBlock>
           <PolicyBlock title="What we do not do">
             We do not sell participant data. We do not use registration data for unrelated marketing or external purposes.
           </PolicyBlock>
           <PolicyBlock title="Data retention">
-            Data is kept only as long as needed for the organization and follow-up of the challenge. Admin users can remove registrations from the admin panel.
+            Data is kept only as long as needed for the organization and follow-up of the simulation. Admin users can remove registrations from the admin panel.
           </PolicyBlock>
           <PolicyBlock title="Your rights">
             You can request access, correction or deletion of your data by contacting hello@am-connecting.com.

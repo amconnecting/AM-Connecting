@@ -11,6 +11,9 @@ export default function AdminDashboard() {
   const [participants, setParticipants] = useState([]);
   const [filters, setFilters] = useState({ company: "", department: "", seniority: "" });
   const [groups, setGroups] = useState([]);
+  const [snapshots, setSnapshots] = useState([]);
+  const [adminGroups, setAdminGroups] = useState([]);
+  const [selectedSnapshotGroup, setSelectedSnapshotGroup] = useState(null);
   const [drafts, setDrafts] = useState({});
   const [copyStatus, setCopyStatus] = useState({});
 
@@ -20,7 +23,7 @@ export default function AdminDashboard() {
         && (!filters.department || participant.department === filters.department)
         && (!filters.seniority || participant.seniority === filters.seniority);
     });
-    }, [participants, filters]);
+  }, [participants, filters]);
 
   const options = useMemo(() => ({
     companies: uniqueValues(participants, "company"),
@@ -47,6 +50,8 @@ export default function AdminDashboard() {
 
       setIsAuthenticated(true);
       await loadParticipants();
+      await loadSnapshots();
+      await loadAdminOverview();
     } catch (error) {
       setLoginError(error.message);
     }
@@ -57,6 +62,9 @@ export default function AdminDashboard() {
     setIsAuthenticated(false);
     setParticipants([]);
     setGroups([]);
+    setSnapshots([]);
+    setAdminGroups([]);
+    setSelectedSnapshotGroup(null);
   }
 
   async function loadParticipants() {
@@ -70,6 +78,30 @@ export default function AdminDashboard() {
     }
 
     setParticipants((result.participants || []).map(normalizeParticipantRecord));
+  }
+
+  async function loadSnapshots() {
+    const response = await fetch("/api/snapshot");
+    const result = await response.json();
+
+    if (!response.ok) {
+      setLoginError(result.error || "Could not load group snapshots.");
+      return;
+    }
+
+    setSnapshots(result.snapshots || []);
+  }
+
+  async function loadAdminOverview() {
+    const response = await fetch("/api/admin/overview");
+    const result = await response.json();
+
+    if (!response.ok) {
+      setLoginError(result.error || "Could not load group overview.");
+      return;
+    }
+
+    setAdminGroups(result.groups || []);
   }
 
   async function deleteRegistration(participant) {
@@ -86,6 +118,7 @@ export default function AdminDashboard() {
 
     setParticipants((current) => current.filter((item) => item.id !== participant.id));
     setGroups([]);
+    setSelectedSnapshotGroup(null);
     setDrafts({});
     setCopyStatus({});
   }
@@ -98,13 +131,17 @@ export default function AdminDashboard() {
     });
     const result = await response.json();
     setGroups(result.groups || []);
+    setSelectedSnapshotGroup(null);
     setDrafts({});
     setCopyStatus({});
+    await loadSnapshots();
+    await loadAdminOverview();
   }
 
-function updateFilter(event) {
+  function updateFilter(event) {
     setFilters((current) => ({ ...current, [event.target.name]: normalizeDisplayText(event.target.value) }));
     setGroups([]);
+    setSelectedSnapshotGroup(null);
     setDrafts({});
   }
 
@@ -159,10 +196,11 @@ function updateFilter(event) {
           </div>
         </header>
 
-        <section className="mt-5 grid gap-4 md:grid-cols-3">
+        <section className="mt-5 grid gap-4 md:grid-cols-4">
           <Metric label="Participants" value={participants.length} />
           <Metric label="Companies" value={options.companies.length} />
           <Metric label="Departments" value={options.departments.length} />
+          <Metric label="Saved groups" value={adminGroups.length} />
         </section>
 
         <section className="card mt-5 overflow-hidden">
@@ -199,6 +237,37 @@ function updateFilter(event) {
               />
             ))}
           </div>
+        </section>
+
+        <section className="card mt-5 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-navy">Group Snapshots</h2>
+              <p className="mt-1 text-navy/65">Track the Decision Snapshot captured by each generated group.</p>
+            </div>
+            <button className="button-secondary" type="button" onClick={loadSnapshots}>Refresh snapshots</button>
+          </div>
+          {!groups.length ? (
+            <p className="py-8 text-center text-navy/55">Generate groups first to review their snapshots.</p>
+          ) : (
+            <GroupSnapshots
+              groups={groups}
+              snapshots={snapshots}
+              selectedGroupIndex={selectedSnapshotGroup}
+              onSelect={setSelectedSnapshotGroup}
+            />
+          )}
+        </section>
+
+        <section className="card mt-5 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-navy">Database Overview</h2>
+              <p className="mt-1 text-navy/65">Saved groups, members, Decision Snapshots and final submissions from the database.</p>
+            </div>
+            <button className="button-secondary" type="button" onClick={loadAdminOverview}>Refresh database data</button>
+          </div>
+          <DatabaseOverview groups={adminGroups} />
         </section>
       </div>
     </main>
@@ -281,6 +350,237 @@ function GroupCard({ group, index, draft, copyStatus, onPrepare, onCopy }) {
       </div>
       {draft ? <textarea className="mt-4 min-h-80 w-full resize-y rounded-lg border border-line bg-cloud p-4 font-mono text-sm leading-6 text-navy" readOnly value={draft} /> : null}
     </article>
+  );
+}
+
+function GroupSnapshots({ groups, snapshots, selectedGroupIndex, onSelect }) {
+  const selectedGroup = selectedGroupIndex === null ? null : groups[selectedGroupIndex];
+  const selectedSnapshot = selectedGroupIndex === null ? null : findGroupSnapshot(snapshots, selectedGroupIndex);
+
+  return (
+    <div className="mt-5 grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid gap-3">
+        {groups.map((group, index) => {
+          const snapshot = findGroupSnapshot(snapshots, index);
+          const isSelected = selectedGroupIndex === index;
+
+          return (
+            <button
+              key={index}
+              className={`rounded-lg border p-4 text-left transition ${isSelected ? "border-teal bg-teal/5 shadow-sm" : "border-line bg-white hover:border-teal"}`}
+              type="button"
+              onClick={() => onSelect(index)}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-bold text-navy">{getGroupName(index, snapshot)}</h3>
+                  <p className="mt-1 text-sm font-semibold text-navy/60">{group.length} participants</p>
+                </div>
+                <StatusLabels snapshot={snapshot} />
+              </div>
+              <p className="mt-3 text-sm leading-6 text-navy/70">
+                {group.map((participant) => participant.name).join(", ")}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
+      <SnapshotDetail group={selectedGroup} groupIndex={selectedGroupIndex} snapshot={selectedSnapshot} />
+    </div>
+  );
+}
+
+function SnapshotDetail({ group, groupIndex, snapshot }) {
+  if (groupIndex === null) {
+    return (
+      <div className="rounded-lg border border-dashed border-line bg-white p-6 text-center text-navy/60">
+        Click on a group to see its full snapshot.
+      </div>
+    );
+  }
+
+  return (
+    <article className="rounded-lg border border-line bg-white p-5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="eyebrow">{getGroupName(groupIndex, snapshot)}</p>
+          <h3 className="mt-2 text-2xl font-bold text-navy">Full snapshot</h3>
+        </div>
+        <StatusLabels snapshot={snapshot} />
+      </div>
+
+      <div className="mt-5">
+        <h4 className="font-bold text-navy">Participants</h4>
+        <div className="mt-3 grid gap-2">
+          {group.map((participant) => (
+            <div key={participant.id || participant.email} className="rounded-lg bg-cloud px-4 py-3">
+              <strong className="text-navy">{participant.name}</strong>
+              <p className="text-sm text-navy/65">{participant.department} - {participant.function} - {participant.seniority}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {snapshot ? (
+        <div className="mt-6 grid gap-4">
+          <SnapshotField label="Main priority" value={snapshot.mainPriority} />
+          <SnapshotField label="Biggest trade-off" value={snapshot.biggestTradeOff} />
+          <SnapshotField label="Temporary direction" value={snapshot.temporaryDirection} />
+          <SnapshotField label="Collaboration insight" value={snapshot.collaborationInsight} />
+          <SnapshotPhoto snapshot={snapshot} />
+        </div>
+      ) : (
+        <p className="mt-6 rounded-lg bg-slate-50 p-5 text-sm font-semibold leading-6 text-navy/60">
+          Snapshot not submitted yet. Once the group submits the Decision Snapshot form, the details will appear here.
+        </p>
+      )}
+    </article>
+  );
+}
+
+function SnapshotField({ label, value }) {
+  return (
+    <div className="rounded-lg border border-line p-4">
+      <h4 className="text-sm font-extrabold uppercase text-navy/55">{label}</h4>
+      <p className="mt-2 leading-7 text-navy/75">{value || "-"}</p>
+    </div>
+  );
+}
+
+function SnapshotPhoto({ snapshot }) {
+  if (snapshot.boardPhotoUrl) {
+    return (
+      <div className="rounded-lg border border-line p-4">
+        <h4 className="text-sm font-extrabold uppercase text-navy/55">Board photo</h4>
+        <img className="mt-3 max-h-96 w-full rounded-lg object-contain" src={snapshot.boardPhotoUrl} alt={`Board photo for ${snapshot.groupName}`} />
+      </div>
+    );
+  }
+
+  if (snapshot.boardPhotoName) {
+    return <SnapshotField label="Board photo" value={snapshot.boardPhotoName} />;
+  }
+
+  return <SnapshotField label="Board photo" value="No board photo uploaded yet." />;
+}
+
+function StatusBadge({ status }) {
+  const styles = {
+    "Snapshot not submitted": "bg-slate-100 text-navy/65",
+    "Snapshot submitted": "bg-teal/10 text-teal",
+    "Final submission pending": "bg-amber-50 text-amber-800",
+    "Final submission received": "bg-emerald-50 text-emerald-800"
+  };
+
+  return (
+    <span className={`rounded-full px-3 py-2 text-xs font-extrabold ${styles[status] || styles["Snapshot not submitted"]}`}>
+      {status}
+    </span>
+  );
+}
+
+function StatusLabels({ snapshot }) {
+  if (!snapshot) {
+    return <StatusBadge status="Snapshot not submitted" />;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <StatusBadge status="Snapshot submitted" />
+      <StatusBadge status={snapshot.finalSubmissionReceived ? "Final submission received" : "Final submission pending"} />
+    </div>
+  );
+}
+
+function findGroupSnapshot(snapshots, groupIndex) {
+  const groupId = getGroupId(groupIndex);
+  const numericGroupId = String(groupIndex + 1);
+  const groupName = getGroupName(groupIndex);
+  return snapshots.find((snapshot) => snapshot.groupId === groupId || snapshot.groupId === numericGroupId || snapshot.groupName === groupName);
+}
+
+function getGroupId(index) {
+  return `group-${index + 1}`;
+}
+
+function getGroupName(index, snapshot) {
+  return snapshot?.groupName || `Group ${index + 1}`;
+}
+
+function DatabaseOverview({ groups }) {
+  if (!groups.length) {
+    return <p className="py-8 text-center text-navy/55">No saved database groups found yet. Click Generate Groups to create saved group records.</p>;
+  }
+
+  return (
+    <div className="mt-5 grid gap-4">
+      {groups.map((group) => (
+        <article key={group.id} className="rounded-lg border border-line bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">{group.company}</p>
+              <h3 className="mt-2 text-2xl font-bold text-navy">{group.groupName}</h3>
+              <p className="mt-1 text-sm font-semibold text-navy/55">Group ID: {group.id}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <StatusBadge status={group.snapshot ? "Snapshot submitted" : "Snapshot not submitted"} />
+              <StatusBadge status={group.finalSubmission ? "Final submission received" : "Final submission pending"} />
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-4 xl:grid-cols-3">
+            <div className="rounded-lg bg-cloud p-4">
+              <h4 className="font-bold text-navy">Group members</h4>
+              <div className="mt-3 grid gap-2">
+                {group.participants.length ? group.participants.map((participant) => (
+                  <div key={participant.id || participant.email} className="rounded-lg bg-white px-3 py-2">
+                    <strong className="text-navy">{participant.name}</strong>
+                    <p className="text-sm text-navy/65">{participant.department} - {participant.function}</p>
+                  </div>
+                )) : <p className="text-sm font-semibold text-navy/55">No members saved.</p>}
+              </div>
+            </div>
+
+            <div className="rounded-lg bg-cloud p-4">
+              <h4 className="font-bold text-navy">Decision Snapshot</h4>
+              {group.snapshot ? (
+                <div className="mt-3 grid gap-3">
+                  <MiniField label="Main priority" value={group.snapshot.mainPriority} />
+                  <MiniField label="Biggest trade-off" value={group.snapshot.biggestTradeOff} />
+                  <MiniField label="Temporary direction" value={group.snapshot.temporaryDirection} />
+                  <MiniField label="Collaboration insight" value={group.snapshot.collaborationInsight} />
+                  <MiniField label="Board photo" value={group.snapshot.boardPhotoUrl || group.snapshot.boardPhotoName || "-"} />
+                </div>
+              ) : <p className="mt-3 text-sm font-semibold text-navy/55">No snapshot submitted.</p>}
+            </div>
+
+            <div className="rounded-lg bg-cloud p-4">
+              <h4 className="font-bold text-navy">Final Submission</h4>
+              {group.finalSubmission ? (
+                <div className="mt-3 grid gap-3">
+                  <MiniField label="Final direction" value={group.finalSubmission.finalDirection} />
+                  <MiniField label="Final priorities" value={group.finalSubmission.finalPriorities} />
+                  <MiniField label="Final trade-offs" value={group.finalSubmission.finalTradeOffs} />
+                  <MiniField label="Collaboration lessons" value={group.finalSubmission.collaborationLessons} />
+                  <MiniField label="Understood better" value={group.finalSubmission.whatTheGroupUnderstoodBetter} />
+                  <MiniField label="Optional file" value={group.finalSubmission.optionalFileUrl || group.finalSubmission.optionalFileName || "-"} />
+                </div>
+              ) : <p className="mt-3 text-sm font-semibold text-navy/55">No final submission received.</p>}
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function MiniField({ label, value }) {
+  return (
+    <div className="rounded-lg bg-white p-3">
+      <p className="text-xs font-extrabold uppercase text-navy/50">{label}</p>
+      <p className="mt-1 text-sm leading-6 text-navy/75">{value || "-"}</p>
+    </div>
   );
 }
 

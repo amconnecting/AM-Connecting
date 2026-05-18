@@ -14,10 +14,10 @@ export default function RegistrationPage() {
           <div>
             <p className="eyebrow text-mint">Profile / Inscription</p>
             <h1 className="mt-4 text-4xl font-bold leading-tight md:text-5xl">
-              Start inscription for a balanced cross-department challenge.
+              Start inscription for a balanced cross-team simulation.
             </h1>
             <p className="mt-6 text-lg leading-8 text-white/75">
-              The profile preview helps create balanced groups across departments, roles, seniority levels and locations.
+              The profile preview helps create diverse groups across roles, experience levels, locations and viewpoints, so participants can explore collaboration dynamics in a balanced setting.
             </p>
           </div>
           <RegistrationForm />

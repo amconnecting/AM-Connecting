@@ -34,7 +34,7 @@ function Hero() {
             Connect and Learn Together
           </h1>
           <p className="mt-6 max-w-2xl text-xl leading-8 text-navy/70">
-            Cross-department collaboration experiences for hybrid organisations.
+            A collaborative business simulation that helps hybrid organisations strengthen cross-team understanding, shared decision-making and internal connection.
           </p>
           <div className="mt-9 flex flex-wrap gap-4">
             <Link href="/#about" className="button-primary">Discover the concept</Link>
@@ -68,21 +68,21 @@ function About() {
       <div className="container-page grid gap-12 lg:grid-cols-[0.85fr_1.15fr]">
         <div>
           <p className="eyebrow">About Us</p>
-          <h2 className="section-title">A stronger company culture starts with real internal connection.</h2>
+          <h2 className="section-title">A stronger company culture starts with understanding how others think, decide and collaborate.</h2>
         </div>
         <article className="card p-7 md:p-10">
           {[
-            "Veel bedrijven merken vandaag dezelfde uitdaging: collega’s werken dagelijks samen, maar kennen elkaar nauwelijks buiten hun eigen team of afdeling. Door hybride werken verdwijnen spontane ontmoetingen steeds vaker naar de achtergrond, terwijl verbondenheid net de basis vormt van een sterke bedrijfscultuur.",
-            "Wij helpen bedrijven om die connectie opnieuw tot leven te brengen.",
-            "Via een interactief traject brengen we medewerkers uit verschillende afdelingen samen in een unieke samenwerkingservaring waarbij communicatie, teamwork en onderling begrip centraal staan. In een professionele maar ontspannen setting leren collega’s elkaars sterktes, inzichten en manieren van denken beter kennen.",
-            "Ons concept creëert niet alleen meer dynamiek en verbondenheid binnen teams, maar stimuleert medewerkers ook om met een frisse blik naar dagelijkse uitdagingen binnen hun werkomgeving te kijken. De inzichten en ideeën die hieruit ontstaan, kunnen bovendien waardevolle inspiratie bieden voor uw organisatie."
+            "Many organisations face the same reality: colleagues work together every day, but often know little about the priorities, pressures and viewpoints that shape how others make decisions.",
+            "AM-Connecting brings employees from different backgrounds together in a collaborative business simulation. The experience is designed for connection, perspective-taking and decision dialogue, not as a traditional workshop.",
+            "Participants navigate a realistic organisational situation, discuss trade-offs, understand different viewpoints and practise shared decision-making in a professional but accessible setting.",
+            "The experience reveals collaboration dynamics: how people exchange information, weigh priorities, make decisions and navigate complexity together."
           ].map((text) => (
             <p key={text} className="mb-5 text-lg leading-8 text-navy/75">{text}</p>
           ))}
-          <p className="mb-5 text-2xl font-extrabold text-navy">Het resultaat?</p>
-          <p className="mb-5 text-lg leading-8 text-navy/75">Meer interactie tussen collega’s, sterkere interne connecties en een werksfeer waarin medewerkers zich opnieuw deel voelen van één geheel.</p>
-          <p className="mb-5 text-lg leading-8 text-navy/75">Wilt u investeren in sterkere teams, meer verbondenheid en een bedrijfscultuur die mensen samenbrengt?</p>
-          <p className="text-lg font-extrabold leading-8 text-teal">→ Ontdek wat wij voor uw volgende teambuilding kunnen betekenen.</p>
+          <p className="mb-5 text-2xl font-extrabold text-navy">The result?</p>
+          <p className="mb-5 text-lg leading-8 text-navy/75">Stronger cross-team understanding, more meaningful internal connection and a shared language around collaboration, trade-offs and organisational awareness.</p>
+          <p className="mb-5 text-lg leading-8 text-navy/75">For HR, People & Culture and employee engagement teams, AM-Connecting offers a modern collaboration experience that feels practical, human and business-relevant.</p>
+          <p className="text-lg font-extrabold leading-8 text-teal">-> Discover how AM-Connecting makes internal collaboration tangible.</p>
         </article>
       </div>
     </section>
@@ -96,7 +96,7 @@ function Events() {
         <div>
           <p className="eyebrow">Events</p>
           <h2 className="section-title">Upcoming events and partnerships will appear here soon.</h2>
-          <p className="mt-6 text-lg leading-8 text-navy/70">This section is prepared for future event moments, partner visibility and feedback from participating teams.</p>
+          <p className="mt-6 text-lg leading-8 text-navy/70">This section is prepared for future simulation moments, partner visibility and reflections from participating employees and HR teams.</p>
         </div>
         <div className="card bg-cloud p-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -106,7 +106,7 @@ function Events() {
           </div>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             <Placeholder title="Partner logos" items={["Partner logo", "Sponsor logo", "Company logo"]} />
-            <Placeholder title="Testimonials" items={["Feedback quote", "Participant insight", "HR reflection"]} />
+            <Placeholder title="Testimonials" items={["Participant reflection", "HR insight", "Leadership feedback"]} />
           </div>
         </div>
       </div>
@@ -133,7 +133,7 @@ function Contact() {
       <div className="container-page grid gap-12 lg:grid-cols-[0.85fr_1.15fr]">
         <div>
           <p className="eyebrow">Contact</p>
-          <h2 className="section-title">Let’s build stronger internal connections.</h2>
+          <h2 className="section-title">Let's build stronger internal connections.</h2>
           <div className="mt-8 grid gap-4 text-lg font-bold text-navy">
             <a href="mailto:hello@amconnecting.com">Email: hello@amconnecting.com</a>
             <a href="tel:+32498730595">Phone: 0498 73 0595</a>

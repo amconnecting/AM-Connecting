@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "AM-Connecting",
-  description: "Cross-department collaboration experiences for hybrid organisations."
+  description: "Collaborative business simulations for cross-team understanding, shared decision-making and internal connection."
 };
 
 export default function RootLayout({ children }) {

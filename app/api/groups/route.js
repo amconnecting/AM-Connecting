@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminAuth";
 import { generateGroups } from "@/lib/groups";
+import { saveGeneratedGroupRecords } from "@/lib/groupRecords";
 import { getParticipants } from "@/lib/participants";
 import { normalizeDisplayText } from "@/lib/participantNormalization";
 
@@ -25,15 +26,20 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const admin = await requireAdmin(request);
-  if (!admin.ok) {
-    return NextResponse.json({ ok: false, error: admin.error }, { status: admin.status });
+  try {
+    const admin = await requireAdmin(request);
+    if (!admin.ok) {
+      return NextResponse.json({ ok: false, error: admin.error }, { status: admin.status });
+    }
+
+    const input = await request.json().catch(() => ({}));
+    const groups = generateGroups(input.participants || [], Number(input.groupSize || 5));
+    const savedGroups = await saveGeneratedGroupRecords(groups);
+
+    return NextResponse.json({ ok: true, groups, savedGroups });
+  } catch (error) {
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
-
-  const input = await request.json().catch(() => ({}));
-  const groups = generateGroups(input.participants || [], Number(input.groupSize || 5));
-
-  return NextResponse.json({ ok: true, groups });
 }
 
 function filterParticipants(participants, searchParams) {
