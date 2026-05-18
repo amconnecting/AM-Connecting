@@ -19,6 +19,7 @@ ADMIN_EMAILS=admin@amconnecting.com
 RESEND_API_KEY=...
 CONTACT_TO_EMAIL=hello@am-connecting.com
 CONTACT_FROM_EMAIL=AM-Connecting <noreply@am-connecting.com>
+NEXT_PUBLIC_SITE_URL=https://am-connecting.com
 ```
 
 ## Supabase setup
@@ -60,3 +61,4 @@ If Vercel shows a different CNAME target, use the exact value Vercel gives you.
 4. Add `RESEND_API_KEY` in Vercel.
 5. Set `CONTACT_TO_EMAIL` to `hello@am-connecting.com`.
 6. Set `CONTACT_FROM_EMAIL` to a verified sender such as `AM-Connecting <noreply@am-connecting.com>`.
+7. Set `NEXT_PUBLIC_SITE_URL` to `https://am-connecting.com` so group instruction emails contain the correct follow-up links.

@@ -27,6 +27,9 @@ export default function AdminDashboard() {
   const [selectedSnapshotGroup, setSelectedSnapshotGroup] = useState(null);
   const [drafts, setDrafts] = useState({});
   const [copyStatus, setCopyStatus] = useState({});
+  const [selectedExportSimulation, setSelectedExportSimulation] = useState("");
+  const [emailSettings, setEmailSettings] = useState({ teamsLink: "", deadline: "" });
+  const [emailSendStatus, setEmailSendStatus] = useState({});
 
   const filteredParticipants = useMemo(() => {
     return participants.filter((participant) => {
@@ -77,6 +80,8 @@ export default function AdminDashboard() {
     setAdminGroups([]);
     setSimulations([]);
     setSelectedSnapshotGroup(null);
+    setSelectedExportSimulation("");
+    setEmailSendStatus({});
   }
 
   async function loadParticipants() {
@@ -193,6 +198,31 @@ export default function AdminDashboard() {
     await loadAdminOverview();
   }
 
+  async function sendSavedGroupEmail(group) {
+    const confirmed = window.confirm(`Send the group instruction email to ${group.groupName}?`);
+    if (!confirmed) return;
+
+    setEmailSendStatus((current) => ({ ...current, [group.id]: "Sending..." }));
+
+    const response = await fetch("/api/admin/send-group-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        groupId: group.id,
+        teamsLink: emailSettings.teamsLink,
+        deadline: emailSettings.deadline
+      })
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      setEmailSendStatus((current) => ({ ...current, [group.id]: result.error || "Could not send email." }));
+      return;
+    }
+
+    setEmailSendStatus((current) => ({ ...current, [group.id]: `Sent to ${result.sentTo} participant(s).` }));
+  }
+
   function updateFilter(event) {
     setFilters((current) => ({ ...current, [event.target.name]: normalizeDisplayText(event.target.value) }));
     setGroups([]);
@@ -247,6 +277,7 @@ export default function AdminDashboard() {
           <div className="flex flex-wrap gap-3">
             <button className="button-secondary" type="button" onClick={() => exportParticipants(filteredParticipants)}>Export participants as CSV</button>
             <button className="button-primary" type="button" onClick={() => exportGroups(groups)} disabled={!groups.length}>Export groups as CSV</button>
+            <button className="button-primary" type="button" onClick={() => exportSavedGroupsBySimulation(adminGroups, selectedExportSimulation)} disabled={!adminGroups.length}>Export selected simulation</button>
             <button className="button-secondary" type="button" onClick={runManualCleanup}>Delete data older than 60 days</button>
             <button className="button-secondary" type="button" onClick={logoutAdmin}>Sign out</button>
           </div>
@@ -257,6 +288,29 @@ export default function AdminDashboard() {
           <Metric label="Companies" value={options.companies.length} />
           <Metric label="Departments" value={options.departments.length} />
           <Metric label="Saved groups" value={adminGroups.length} />
+        </section>
+
+        <section className="card mt-5 p-5">
+          <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1fr]">
+            <label className="field">
+              Export by simulation
+              <select className="input bg-cloud focus:bg-white" value={selectedExportSimulation} onChange={(event) => setSelectedExportSimulation(event.target.value)}>
+                <option value="">All simulations</option>
+                {simulations.map((simulation) => (
+                  <option key={simulation.id} value={simulation.id}>{simulation.title}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              Teams link for group emails
+              <input className="input bg-cloud focus:bg-white" value={emailSettings.teamsLink} onChange={(event) => setEmailSettings((current) => ({ ...current, teamsLink: event.target.value }))} placeholder="https://teams.microsoft.com/..." />
+            </label>
+            <label className="field">
+              Deadline for group emails
+              <input className="input bg-cloud focus:bg-white" value={emailSettings.deadline} onChange={(event) => setEmailSettings((current) => ({ ...current, deadline: event.target.value }))} placeholder="Example: Friday 17:00" />
+            </label>
+          </div>
+          <p className="mt-3 text-sm font-semibold leading-6 text-navy/60">Use the export dropdown for simulation-specific CSV files. The Teams link and deadline are included when you send group instruction emails from the database overview.</p>
         </section>
 
         <section className="card mt-5 overflow-hidden">
@@ -324,7 +378,13 @@ export default function AdminDashboard() {
             </div>
             <button className="button-secondary" type="button" onClick={loadAdminOverview}>Refresh database data</button>
           </div>
-          <DatabaseOverview groups={adminGroups} simulations={simulations} onSimulationChange={updateSavedGroupSimulation} />
+          <DatabaseOverview
+            groups={adminGroups}
+            simulations={simulations}
+            onSimulationChange={updateSavedGroupSimulation}
+            onSendEmail={sendSavedGroupEmail}
+            emailSendStatus={emailSendStatus}
+          />
         </section>
       </div>
     </main>
@@ -593,7 +653,7 @@ function getGroupName(index, snapshot) {
   return snapshot?.groupName || `Group ${index + 1}`;
 }
 
-function DatabaseOverview({ groups, simulations, onSimulationChange }) {
+function DatabaseOverview({ groups, simulations, onSimulationChange, onSendEmail, emailSendStatus }) {
   if (!groups.length) {
     return <p className="py-8 text-center text-navy/55">No saved database groups found yet. Click Generate Groups to create saved group records.</p>;
   }
@@ -622,6 +682,12 @@ function DatabaseOverview({ groups, simulations, onSimulationChange }) {
               <StatusBadge status={group.snapshot ? "Snapshot submitted" : "Snapshot not submitted"} />
               <StatusBadge status={group.finalSubmission ? "Final submission received" : "Final submission pending"} />
             </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button className="button-primary" type="button" onClick={() => onSendEmail(group)} disabled={!group.participants.length}>
+              Send group instructions
+            </button>
+            {emailSendStatus[group.id] ? <span className="text-sm font-extrabold text-teal">{emailSendStatus[group.id]}</span> : null}
           </div>
 
           <div className="mt-5 grid gap-4 xl:grid-cols-3">
@@ -714,6 +780,32 @@ function exportGroups(groups) {
   ]);
 }
 
+function exportSavedGroupsBySimulation(groups, simulationId) {
+  const selectedGroups = simulationId
+    ? groups.filter((group) => group.simulationId === simulationId)
+    : groups;
+  const simulationName = selectedGroups[0]?.simulation?.title || "all-simulations";
+  const filename = `am-connecting-${slugify(simulationName)}-groups.csv`;
+
+  downloadCsv(filename, [
+    ["simulation", "company", "group", "participant", "email", "department", "function", "seniority", "snapshotStatus", "finalSubmissionStatus"],
+    ...selectedGroups.flatMap((group) =>
+      group.participants.map((participant) => [
+        group.simulation?.title || "",
+        group.company,
+        group.groupName,
+        participant.name,
+        participant.email,
+        participant.department,
+        participant.function,
+        participant.seniority,
+        group.snapshot ? "Snapshot submitted" : "Snapshot not submitted",
+        group.finalSubmission ? "Final submission received" : "Final submission pending"
+      ])
+    )
+  ]);
+}
+
 function downloadCsv(filename, rows) {
   const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -727,4 +819,12 @@ function downloadCsv(filename, rows) {
 
 function csvEscape(value) {
   return `"${String(value || "").replaceAll('"', '""')}"`;
+}
+
+function slugify(value) {
+  return String(value || "export")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "export";
 }
