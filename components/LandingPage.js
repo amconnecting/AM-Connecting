@@ -82,7 +82,7 @@ function About() {
           <p className="mb-5 text-2xl font-extrabold text-navy">The result?</p>
           <p className="mb-5 text-lg leading-8 text-navy/75">Stronger cross-team understanding, more meaningful internal connection and a shared language around collaboration, trade-offs and organisational awareness.</p>
           <p className="mb-5 text-lg leading-8 text-navy/75">For HR, People & Culture and employee engagement teams, AM-Connecting offers a modern collaboration experience that feels practical, human and business-relevant.</p>
-          <p className="text-lg font-extrabold leading-8 text-teal">-> Discover how AM-Connecting makes internal collaboration tangible.</p>
+          <p className="text-lg font-extrabold leading-8 text-teal">Discover how AM-Connecting makes internal collaboration tangible.</p>
         </article>
       </div>
     </section>
