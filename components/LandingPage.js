@@ -3,13 +3,30 @@ import Link from "next/link";
 import ContactForm from "@/components/ContactForm";
 import Header from "@/components/Header";
 
+const organisationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "AM-Connecting",
+  url: "https://am-connecting.com",
+  logo: "https://am-connecting.com/am-connecting-logo.png",
+  email: "hello@amconnecting.com",
+  telephone: "+32498730595",
+  slogan: "Connect. Collaborate. Grow Together.",
+  description: "Collaborative business simulations for internal connection, shared decision-making and cross-team understanding."
+};
+
 export default function LandingPage() {
   return (
     <>
       <Header />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organisationJsonLd) }}
+      />
       <main>
         <Hero />
         <About />
+        <ParticipantHub />
         <Events />
         <Contact />
       </main>
@@ -108,6 +125,54 @@ function Events() {
             <Placeholder title="Partner logos" items={["Partner logo", "Sponsor logo", "Company logo"]} />
             <Placeholder title="Testimonials" items={["Participant reflection", "HR insight", "Leadership feedback"]} />
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ParticipantHub() {
+  const actions = [
+    {
+      title: "Find your group",
+      text: "Use the email address from your inscription to see your group number and members.",
+      href: "/my-group",
+      label: "Find my group"
+    },
+    {
+      title: "Decision Snapshot",
+      text: "Capture the shared direction, trade-offs and key insights from the kick-off discussion.",
+      href: "/snapshot",
+      label: "Submit snapshot"
+    },
+    {
+      title: "Follow-up and final summary",
+      text: "Start from Find My Group to open the correct follow-up and final submission page for your group.",
+      href: "/my-group",
+      label: "Continue session"
+    }
+  ];
+
+  return (
+    <section id="participant-hub" className="bg-cloud py-24">
+      <div className="container-page">
+        <div className="max-w-3xl">
+          <p className="eyebrow">Participant Hub</p>
+          <h2 className="section-title">Everything participants need during the AM-Connecting experience.</h2>
+          <p className="mt-6 text-lg leading-8 text-navy/70">
+            Use this hub during the event. QR codes can point directly here or to a specific step, but participants can always return here when they are unsure where to go next.
+          </p>
+        </div>
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {actions.map((action) => (
+            <article key={action.title} className="card flex flex-col p-6">
+              <h3 className="text-2xl font-bold text-navy">{action.title}</h3>
+              <p className="mt-4 flex-1 leading-7 text-navy/70">{action.text}</p>
+              <Link className="button-primary mt-6 w-full" href={action.href}>
+                {action.label}
+              </Link>
+            </article>
+          ))}
         </div>
       </div>
     </section>

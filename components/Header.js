@@ -3,6 +3,7 @@ import Link from "next/link";
 
 const navItems = [
   ["About Us", "/#about"],
+  ["Participant Hub", "/#participant-hub"],
   ["Events", "/#events"],
   ["Contact", "/#contact"],
   ["Find My Group", "/my-group"],

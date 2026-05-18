@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { saveFinalSubmission } from "@/lib/finalSubmissions";
+import { isTooLarge, tooLargeResponse } from "@/lib/requestGuards";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
   try {
     const input = await request.json().catch(() => ({}));
+    if (isTooLarge(input, 12000)) {
+      return NextResponse.json(tooLargeResponse(), { status: 413 });
+    }
+
     const result = await saveFinalSubmission(input);
 
     if (!result.ok) {

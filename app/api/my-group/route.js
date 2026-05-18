@@ -12,6 +12,10 @@ export async function POST(request) {
       return NextResponse.json({ ok: false, error: "Email is required." }, { status: 400 });
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return NextResponse.json({ ok: false, error: "Please enter a valid email address." }, { status: 400 });
+    }
+
     const group = await getParticipantGroupByEmail(email);
     if (!group) {
       return NextResponse.json({ ok: false, error: "No group found for this email yet." }, { status: 404 });

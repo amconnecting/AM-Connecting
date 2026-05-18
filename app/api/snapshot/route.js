@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminAuth";
+import { isTooLarge, tooLargeResponse } from "@/lib/requestGuards";
 import { getDecisionSnapshots, saveDecisionSnapshot } from "@/lib/snapshots";
 
 export const runtime = "nodejs";
@@ -21,6 +22,10 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const input = await request.json().catch(() => ({}));
+    if (isTooLarge(input)) {
+      return NextResponse.json(tooLargeResponse(), { status: 413 });
+    }
+
     const result = await saveDecisionSnapshot(input);
 
     if (!result.ok) {

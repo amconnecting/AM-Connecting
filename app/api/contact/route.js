@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
+import { isTooLarge, tooLargeResponse } from "@/lib/requestGuards";
 
 export const runtime = "nodejs";
 
 export async function POST(request) {
   const input = await request.json().catch(() => ({}));
+  if (isTooLarge(input, 5000)) {
+    return NextResponse.json(tooLargeResponse(), { status: 413 });
+  }
+
   const contact = validateContact(input);
 
   if (contact.errors.length > 0) {
